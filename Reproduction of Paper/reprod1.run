@@ -1,0 +1,28 @@
+####################################
+## Reproduction of "Fog-Assisted Caching..." paper ##
+## Case A: Power Consumption with Brown Powered CDCs and FDCs
+## Version 7 ##
+## Run Script ##
+## Kamal Gamir-Shahin ##
+## 26/04/2021 ##
+####################################
+
+# To run this code, type "include reprod1.run;" in the AMPL console
+
+option solver cplex;	# Change the solver to CPLEX
+option cplex_options 'timelimit=86400 mipdisplay=2'; # Print solver debugging to console
+#option presolve 4;		# Run 3 Presolve operations (2 after initial)
+#option show_stats 2;	# Show stats during sovling
+reset; model reprod1.mod; data reprod1.dat; # Reset the program, load the model, load the data
+solve; # Solve the LP
+
+# Display the different power consumptions in contiguous columns
+display core_net_pc, access_net_pc, metro_net_pc, cdc_pc, fdc_pc, PCb;
+# Display the distribution of power delivery between the cloud and fog
+display CDCserved, FDCserved;
+# Display the ratio of total traffic delivered by the cloud and fog
+display CDCratio, FDCratio;
+# Display current power usage effectiveness of FDC
+display PUEf;
+# Display the network power consumption
+display PCn;

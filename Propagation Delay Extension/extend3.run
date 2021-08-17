@@ -1,0 +1,31 @@
+####################################
+## Resource Allocation in 6G Networks with Renewable Energy ##
+## Extension: Propagation Delay ##
+## Case C: Power Consumption with Fully Renewable CDCs and Solar Powered FDCs with ESDs ##
+## Version 7 ##
+## Run Script ##
+## Kamal Gamir-Shahin ##
+## 04/05/2021 ##
+####################################
+
+# To run this code, type "include extend3.run;" in the AMPL console
+
+option solver cplex;	# Change the solver to CPLEX
+option cplex_options 'mipdisplay=2'; # Display solver debugging statements
+#option cplex_options 'timelimit=86400 nodefile=2 mipdisplay=2';
+reset; model extend3.mod; data extend3.dat; # Reset the program, load the model, load the data
+solve; # Solve the LP
+
+# Display the different power consumptions in contiguous columns
+display core_net_pc, access_net_pc, metro_net_pc, cdc_pc, fdcb_pc, Objective;
+
+display TotalBrownPower;	# Display total brown power consumption (in W)
+display TotalPropDelay;		# Display the total propagation delay (in s)
+
+display CDCS, FDCB, FDCS, FDCE;					# Display Traffic Delivered by each Source Type (at different times)
+display CDCserved, FDCBserved, FDCSserved, FDCEserved;	# Display Traffic delivered by each source type (at different nodes)
+
+display x, y, z;	# Display the objective weighting parameters
+
+display TotalLightpath;	# Display the total lightpath
+display AvgPropDelay;	# Display the average propagation delay

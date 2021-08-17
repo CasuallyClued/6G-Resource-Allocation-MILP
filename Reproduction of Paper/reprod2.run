@@ -1,0 +1,24 @@
+####################################
+## Reproduction of "Fog-Assisted Caching..." paper ##
+## Case B: Power Consumption with Fully Renewable Powered CDCs and Solar Powered FDCs
+## Version 7 ##
+## Run Script ##
+## Kamal Gamir-Shahin ##
+## 26/04/2021 ##
+####################################
+
+# To run this code, type "include reprod2.run;" in the AMPL console
+
+option solver cplex; # Change the solver to CPLEX
+option cplex_options 'timelimit=86400 nodefile=2 mipdisplay=2'; # Solver debugging options
+
+reset; model reprod2.mod; data reprod2.dat; # Reset the program, load the model, load the data
+solve; # Solve the LP
+
+# Display the different power consumptions in contiguous columns
+display core_net_pc, access_net_pc, metro_net_pc, cdc_pc, fdcb_pc, PCb;
+
+display CDCS, FDCB, FDCS;
+#display CDCserved, FDCBserved, FDCSserved;
+display SSC;
+display PCb/1e6; # Display PCb in MW

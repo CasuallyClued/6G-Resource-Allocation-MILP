@@ -1,0 +1,41 @@
+####################################
+## Resource Allocation in 6G Networks with Renewable Energy ##
+## Extension: Propagation Delay ##
+## Case B: Power Consumption with Fully Renewable CDCs and Solar Powered FDCs ##
+## Version 7 ##
+## Run Script ##
+## Kamal Gamir-Shahin ##
+## 04/05/2021 ##
+####################################
+
+# To run this code, type "include extend2.run;" in the AMPL console
+
+option solver cplex;	# Change the solver to CPLEX
+option cplex_options 'mipdisplay=2'; # Display solver debugging statements
+
+##########
+## Alternative solver options
+#option cplex_options 'mipdisplay=2 lpdisplay=1 mipgap=1e-3'; # Display additional solver debugging statements
+#option cplex_options 'timelimit=86400 mipdisplay=2 autoopt lpdisplay=1 timing=1'; # Out of memory
+#option cplex_options 'timelimit=86400 mipdisplay=2 primalopt lpdisplay=1 timing=1'; # Out of memory
+#option cplex_options 'timelimit=86400 mipdisplay=2 dualopt lpdisplay=1 timing=1'; # Works, long time
+#option cplex_options 'timelimit=86400 mipdisplay=2 baropt bardisplay=1 timing=1';
+#########
+
+reset; model extend2.mod; data extend2.dat; # Reset the program, load the model, load the data
+solve; # Solve the LP
+
+# Display the different power consumptions in contiguous columns
+display core_net_pc, access_net_pc, metro_net_pc, cdc_pc, fdcb_pc, Objective;
+
+display TotalBrownPower;	# Display total brown power consumption (in W)
+display TotalPropDelay;		# Display the total propagation delay (in s)
+
+display CDCS, FDCB, FDCS;					# Display Traffic Delivered by each Source Type (at different times)
+display CDCserved, FDCBserved, FDCSserved;	# Display Traffic delivered by each source type (at different nodes)
+
+display SSC;		# Display 
+display x, y, z;	# Display the objective weighting parameters
+
+display TotalLightpath;	# Display the total lightpath
+display AvgPropDelay;	# Display the average propagation delay

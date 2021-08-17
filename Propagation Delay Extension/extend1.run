@@ -1,0 +1,44 @@
+####################################
+## Resource Allocation in 6G Networks with Renewable Energy ##
+## Extension: Propagation Delay ##
+## Case A: Power Consumption with Brown Powered CDCs and FDCs ##
+## Version 7 ##
+## Run Script ##
+## Kamal Gamir-Shahin ##
+## 04/05/2021 ##
+####################################
+
+# To run this code, type "include extend1.run;" in the AMPL console
+
+option solver cplex;	# Change the solver to CPLEX
+option cplex_options 'mipdisplay=2'; # Display solver debugging statements
+
+#######################
+## Alternative solver options
+#option cplex_options 'mipdisplay=2 lpdisplay=1 mipgap=1e-3'; # Display additional solver debugging statements
+#option cplex_options 'timelimit=86400 mipdisplay=2 autoopt lpdisplay=1 timing=1'; # Out of memory
+#option cplex_options 'timelimit=86400 mipdisplay=2 primalopt lpdisplay=1 timing=1'; # Out of memory
+#option cplex_options 'timelimit=86400 mipdisplay=2 dualopt lpdisplay=1 timing=1'; # Works, long time
+#option cplex_options 'timelimit=86400 mipdisplay=2 baropt bardisplay=1 timing=1';
+#option presolve 4;		# Set the number of presolve iterations to 
+#######################
+
+reset; model extend1.mod; data extend1.dat; # Reset the program, load the model, load the data
+solve; # Solve the LP
+
+# Display the different power consumptions in contiguous columns
+display core_net_pc, access_net_pc, metro_net_pc, cdc_pc, fdc_pc, Objective;
+
+display TotalBrownPower;	# Display total brown power consumption (in W)
+display TotalPropDelay;		# Display the total propagation delay (in s)
+display PCn;				# Display the core network power consumption
+
+display CDCserved, FDCserved;	# Display the amount of total traffic delivered by the cloud and fog
+display CDCratio, FDCratio;		# Display the ratio of total traffic delivered by the cloud and fog
+display PUEf;					# Display current power usage effectiveness of FDC
+
+display x, y, z;	# Display the objective weighting parameters
+
+# Display the total lightpaths
+display CoreLightpath, CDCLightpath, FDCLightpath, TotalLightpath;	
+display AvgPropDelay;	# Display the average propagation delay

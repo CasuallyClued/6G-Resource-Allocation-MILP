@@ -1,0 +1,248 @@
+####################################
+## Resource Allocation in 6G Networks with Renewable Energy ##
+## Extension: Propagation Delay ##
+## Case C: Power Consumption with Fully Renewable CDCs and Solar Powered FDCs with ESDs ##
+## Version 7 ##
+## Data ##
+## Kamal Gamir-Shahin ##
+## 04/05/2021 ##
+####################################
+
+set N := 1 2 3 4 5 6 7 8 9 10 11 12 13 14; 	# N, set of nodes in NSFNET network
+set T := 0 2 4 6 8 10 12 14 16 18 20 22; 	# Set of times (hours) in the day
+set WR := 40 100 400 1000; 					# Set of Wavelength Rates (in Gbps)
+set CDC := 2 3 7 8 9; 						# Set of Cloud Data Centres (which nodes they are located)
+
+# Set of node physical connections (m,n)
+set Nm[1] :=2 3 4; # Node 1, is connected to nodes 2, 3 and 4
+set Nm[2] :=1 3 8;
+set Nm[3] :=1 2 6;
+set Nm[4] :=1 5 11;
+set Nm[5] :=4 6 7;
+set Nm[6] :=3 5 10 13;
+set Nm[7] := 5 8;
+set Nm[8] := 2 7 9;
+set Nm[9] :=8 10 12 14;
+set Nm[10] :=6 9;
+set Nm[11] :=4 12 14;
+set Nm[12] :=9 11 13;
+set Nm[13] :=6 12 14;
+set Nm[14] :=9 11 13;
+
+param SS := 2;	# The duration between consecutive hours in T
+param W := 32; 	# Number of wavelengths in a fibre
+param DA := 80;	# Span between two neighbouring EDFAs
+
+param Rr := 	# Reach of regenerators at a wavelength rate r
+#	WR		Rr
+	40 		2500
+	100 	1200
+	400 	400
+	1000	350
+;
+param PRr := 	# Power consumption of a router port at wavelength rate r
+#	WR		PRr
+	40 		178.2
+	100 	309.3
+	400 	367.8
+	1000	425.1			
+;
+param PTr := 	# Power consumption of a transponder at wavelength rate r
+#	WR		PTr
+	40 		35.7
+	100 	110.9
+	400 	428
+	1000	1032.6		
+;
+
+param Br := 	# Line rate at wavelength rate r
+#	WR		Br
+	40 		40
+	100 	100
+	400 	400
+	1000	1000
+;
+
+param PGr := 	# Power consumption of a regenerator at wavelength rate r
+#	WR		PTr
+	40 		71.4
+	100 	221.8
+	400 	857.4
+	1000	2065.2		
+;
+
+param PRm = 178.2;	# Power consumption of an aggregation router port (178.2, 309.3, 367.8 425.1)
+param Bm = 40; 		# Line rate of an aggregation port in Gbps
+param POm = 85; 	# Power consumption of an optical switch at core mode m
+param PE = 15.3;	# Power consumption of an optical switch at core mode m
+param PS = 50;		# Power consumption of a metro Ethernet switch port at a rate of 40 Gbps
+param Pcs = 211.1;	# Power consumption of a content centre per Gbps
+param Cs = 1.8; 	# Capacity of a content server in Gbps 
+
+
+param PUEc = 1.1; 	# Power Usage Effectiveness of Cloud Data Centres
+param PUEf = 1.1;	# Power Usage Effectiveness of Fog Data Centres
+param PUEn = 1.5; 	# Power Usage Effectiveness of Core, metro and access networking equipment
+
+param Zcdc = 1.3; 	# Ratio to account for networking equipment power consumption in CDCs
+param Zfdc = 1.3; 	# Ratio to account for networking equipment power consumption in FDCs
+
+param Polt = 904; 	# Power consmuption of an OLT (Optical Line Terminal)
+param Colt = 160;	# Total capacity of links between OLT and metro network
+param Cfdc = 160; 	# Total capacity of links between OLT and fog data centre
+
+# Solar Energy Properties
+param SSC = 250; 		# Size of solar cell (in m^2) (50, 150, 250)
+param Emax = 100000; 	# Battery maximum capacity (in Wh)
+param Alpha = 0.7225; 	# Charging efficiency during S(Alpha)
+param Beta = 0.9025; 	# Charging efficiency during S(Beta)
+
+# Delay Parameters
+param M = 1e6;	# Large Number used in Link Usage Constraints
+param Ri = 1.5;	# Typical Refractive Index of Optical Fibre
+param Vc = 3e8; # Speed of Light in Vacuum (in m/s)
+
+param Dcdc = 15;	# Distance between CDC and ONU (End user) (in km)
+param Dfdc = 10;	# Distance between FDCs (OLT) and ONU (End user) (in km)
+
+# Objective Weighting Parameters
+param x = 1e-8;	# 1e-3 for power optimisation # 0 	for prop delay optimisation # 1e-8	for joint
+param y = 1e3;	# 1    for power optimisation # 100	for prop delay optimisation # 1e3	for joint
+param z = 1;	# Currently unused (maybe queueing delay extension?)
+
+param Dmn: # The physical distance between connected nodes m and n (in km)
+		1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+1		0		1100	600		1000	0		0		0		0		0		0		0		0		0		0
+2		1100	0		1600	0		0		0		0		2800	0		0		0		0		0		0
+3		600		1600	0		0		0		2000	0		0		0		0		0		0		0		0	
+4		1000	0		0		0		600		0		0		0		0		0		2400	0		0		0	
+5		0		0		0		600		0		1100	800		0		0		0		0		0		0		0
+6		0		0		2000	0		1100	0		0		0		0		1200	0		0		2000	0
+7		0		0		0		0		800		0		0		700		0		0		0		0		0		0
+8		0		2800	0		0		0		0		700		0		700		0		0		0		0		0
+9		0		0		0		0		0		0		0		700		0		900		0		500		0		500
+10		0		0		0		0		0		1200	0		0		900		0		0		0		0		0
+11		0		0		0		2400	0		0		0		0		0		0		0		800		0		800
+12		0		0		0		0		0		0		0		0		500		0		800		0		300		0
+13		0		0		0		0		0		2000	0		0		0		0		0		300		0		300
+14		0		0		0		0		0		0		0		0		500		0		800		0		300		0
+;
+
+# Solar power availability per m^2 in W at each node (see Table 2. in paper)
+param SPdt(tr): # (tr) = Table is transposed to reflect its layout in the paper
+		1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+0		0		0		0		0		0		0		0		0		0		0		0		0		0		0
+2		0		0		0		0		0		0		0		0		0		0		0		0		0		0
+4		0		0		0		0		0		0		0		0		0		0		0		0		0		0	
+6		12.13	22.8	45.1	9.66	24.9	21.5	9.94	30.5	13.31	9.60	5.93	18.90	22.3	26.110	
+8		105.46	141.00	176.00	112.00	139.00	151.00	113.00	146.00	120.60	122.74	100.00	126.00	137.00	140.48
+10		178.53	227.00	255.00	203.00	218.00	252.00	203.00	220.00	208.29	227.45	192.00	204.00	220.00	217.69
+12		191.34	241.00	257.00	228.00	227.00	277.00	228.00	225.00	229.22	261.87	221.00	217.00	233.00	225.59
+14		140.41	181.00	181.00	181.00	165.00	219.00	180.00	158.00	177.71	216.68	179.00	159.00	173.00	162.06
+16		41.70	62.60	50.60	75.30	49.80	95.00	74.30	42.20	68.06	104.17	78.90	49.50	57.10	46.88
+18		0		0		0		0.40	0		1.16	0.33	0		0.03	3.65	0.98	0		0		0
+20		0		0		0		0		0		0		0		0		0		0		0		0		0		0
+22		0		0		0		0		0		0		0		0		0		0		0		0		0		0
+;
+
+# Demands from CDC c to node d at time t in Gbps (5x14x12) matrix
+# 12 tables with 5 rows (for CDCs) and 14 columns for all nodes
+param VoDcdt := 
+																	
+[*,*,0]
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=	
+	2	1960	448		14600	871		1070	225		2730	977		486		616		171		311		734		1180		
+	3	1620	348		24700	677		835		175		4630	759		823		581		290		357		649		481		
+	7	387		83		5880	553		1490	311		14800	1350	2630	1850	925		1140	2070	619		
+	8	2880	266		8650	1890	5080	3000	12100	32300	8970	20400	5660	10300	22700	6790		
+	9	816		175		12400	1170	1640	1100	31100	11900	26200	18500	5150	9370	20700	6180		
+																	
+[*,*,2]	
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+	2	877		201		6530	390		481		101		1220	438		218		276		76.7	139		329		530		
+	3	728		156		11100	303		374		78.2	2070	340		369		260		130		160		291		215		
+	7	173		37.2	2630	248		666		139		6610	605		1180	831		414		510		928		277		
+	8	1290	119		3870	846		2270	1340	5420	14500	4020	9120	2540	4610	10200	3040		
+	9	365		78.3	5550	522		733		493		13900	5310	11700	8300	2310	4190	9270	2770		
+																	
+[*,*,4]	
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+	2	542		124		4030	241		297		62.1	756		270		134		170		47.4	86		203		327		
+	3	449		96.2	6820	187		231		48.3	1280	210		227		161		80.1	98.7	179		133		
+	7	107		22.9	1630	153		411		85.9	4080	373		726		513		256		315		572		171		
+	8	796		73.4	2390	522		1400	828		3340	8920	2480	5630	1570	2840	6280	1880		
+	9	225		48.3	3430	322		452		304		8590	3280	7250	5120	1420	2590	5720	1710		
+																	
+[*,*,6]	
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+	2	491		112		3650	218		269		56.3	685		245		122		154		42.9	78		184		296		
+	3	407		87.2	6180	170		209		43.7	1160	190		206		146		72.6	89.4	163		120		
+	7	97		20.8	1470	139		372		77.8	3700	338		658		465		232		285		519		155		
+	8	721		66.5	2170	473		1270	750		3030	8090	2250	5100	1420	2580	5690	1700		
+	9	204		43.8	3100	292		410		275		7790	2970	6570	4640	1290	2350	5180	1550		
+																	
+[*,*,8]	
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+	2	698		160		5200	311		383		80.1	974		348		173		220		61.1	111		262		422		
+	3	579		124		8800	241		298		62.2	1650	271		293		207		103		127		231		171		
+	7	138		29.6	2100	197		530		111		5260	482		936		661		330		406		738		221		
+	8	1030	94.6	3080	674		1810	1070	4310	11500	3200	7260	2020	3670	8100	2420		
+	9	291		62.3	4420	415		583		392		11100	4220	9350	6600	1840	3340	7370	2200		
+																	
+[*,*,10]	
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+	2	1440	330		10800	642		792		166		2010	720		358		454		126		229		541		872		
+	3	1200	257		18200	499		615		129		3410	560		607		429		214		263		479		354		
+	7	285		61.1	4340	408		1100	229		10900	996		1940	1370	682		839		1530	456		
+	8	2120	196		6370	1390	3740	2210	8920	23800	6610	15000	4170	7580	16800	5000		
+	9	601		129		9130	859		1210	811		22900	8740	19300	13700	3800	6900	15200	4560		
+																	
+[*,*,12]	
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+	2	2240	513		16700	997		1230	257		3130	1120	557		705		196		356		840		1350		
+	3	1860	398		28300	775		956		200		5300	869		942		666		332		409		743		550		
+	7	443		95		6740	633		1700	356		16900	1550	3010	2120	1060	1300	2370	708		
+	8	3300	304		9900	2160	5810	3430	13900	37000	10300	23300	6480	11800	26000	7770		
+	9	934		200		14200	1330	1870	1260	35600	13600	30000	21200	5900	10700	23700	7070		
+																	
+[*,*,14]	
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+	2	2870	657		21400	1280	1580	330		4010	1430	713		903		251		457		1080	1740		
+	3	2380	510		36200	993		1220	256		6780	1110	1210	853		425		524		952		705		
+	7	568		122		8630	812		2180	456		21600	1980	3850	2720	1360	1670	3040	907		
+	8	4220	389		12700	2770	7440	4390	17700	47300	13200	29900	8310	15100	33300	9960		
+	9	1200	256		18200	1710	2400	1610	45600	17400	38500	27200	7560	13700	30300	9060		
+																	
+[*,*,16]	
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+	2	3230	739		24100	1440	1770	371		4510	1610	803		1020	283		514		1210	1950		
+	3	2680	574		40700	1120	1380	288		7630	1250	1360	959		478		589		1070	793		
+	7	639		137		9710	913		2450	513		24300	2230	4330	3060	1530	1880	3420	1020		
+	8	4750	438		14300	3120	8370	4940	20000	53300	14800	33600	9340	17000	37500	11200		
+	9	1350	288		20500	1920	2700	1810	51300	19600	43300	30600	8510	15500	34100	10200		
+																	
+																	
+[*,*,18]	
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+	2	3370	771		25100	1500	1850	387		4700	1680	837		1060	295		536		1260	2040		
+	3	2800	599		42500	1170	1440	301		7960	1310	1420	1000	499		614		1120	828		
+	7	667		143		10100	952		2560	535		25400	2330	4520	3190	1590	1960	3560	1060		
+	8	4960	457		14900	3250	8730	5160	20800	55600	15400	35000	9750	17700	39100	11700		
+	9	1400	301		21300	2010	2820	1890	53500	20400	45100	31900	8870	16100	35600	10600		
+																	
+[*,*,20]	
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+	2	3450	790		25700	1540	1890	396		4820	1720	858		1090	302		549		1290	2090		
+	3	2860	614		43500	1190	1470	308		8160	1340	1450	1030	511		629		1140	848		
+	7	683		146		10400	976		2620	548		26000	2380	4630	3270	1630	2010	3650	1090		
+	8	5080	468		15200	3330	8950	5280	21300	56900	15800	35900	9980	18100	40100	12000		
+	9	1440	308		21900	2060	2890	1940	54800	20900	46200	32700	9090	16500	36500	10900		
+																	
+[*,*,22]	
+	:	1		2		3		4		5		6		7		8		9		10		11		12		13		14	:=
+	2	3520	804		26200	1560	1930	403		4910	1750	873		1110	308		559		1320	2120		
+	3	2920	625		44300	1220	1500	313		8300	1360	1480	1040	521		641		1170	863		
+	7	695		149		10600	993		2670	558		26500	2430	4710	3330	1660	2040	3720	1110		
+	8	5170	477		15500	3390	9110	5380	21700	58000	16100	36500	10200	18500	40800	12200		
+	9	1460	314		22200	2090	2940	1970	55800	21300	47100	33300	9250	16800	37100	11100	
+	;	
